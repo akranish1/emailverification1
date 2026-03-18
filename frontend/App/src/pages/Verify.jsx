@@ -3,6 +3,7 @@ import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Verify() {
+    const API = import.meta.env.VITE_API_URL;
   const { state } = useLocation();
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
@@ -18,7 +19,7 @@ export default function Verify() {
 
   const handleVerify = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/verify", { email, otp });
+      const res = await axios.post(`${API}/api/auth/verify`, { email, otp });
       if (res.data.message === "Verified successfully") navigate("/login");
       else alert(res.data.message);
     } catch (err) { alert("Error verifying OTP"); }

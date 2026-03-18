@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Signup() {
+    const API = import.meta.env.VITE_API_URL;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function Signup() {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/signup", { email, password });
+      const res = await axios.post(`${API}/api/auth/signup`, { email, password });
       alert(res.data.message);
       navigate("/verify", { state: { email } });
     } catch (err) { alert("Signup failed"); }

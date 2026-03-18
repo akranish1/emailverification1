@@ -5,12 +5,12 @@ import { useNavigate } from "react-router-dom";
 export default function Home() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-
+const API = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/protected", {
+        const res = await axios.get(`${API}/api/protected`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUser(res.data.user);
