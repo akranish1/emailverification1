@@ -11,6 +11,7 @@ const rateLimit = require("express-rate-limit");
 
 // ====================== APP ======================
 const app = express();
+app.set("trust proxy", 1);
 app.use(cors({
   origin: "https://emailverification1-1.onrender.com",
   credentials: true
