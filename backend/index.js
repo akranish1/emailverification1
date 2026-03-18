@@ -46,11 +46,14 @@ redis.on("error", err => console.log("Redis Error:", err));
 
 // ====================== MAIL (BREVO) ======================
 const transporter = nodemailer.createTransport({
-  service: "gmail", // ✅ easiest & safest
+  host: "smtp.gmail.com",
+  port: 587,          // ✅ use 587 (NOT 465)
+  secure: false,      // TLS upgrade
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // App Password
+    pass: process.env.EMAIL_PASS,
   },
+  family: 4,          // ✅ FORCE IPv4 (IMPORTANT FIX)
 });
 
 const sendOTP = async (email, otp) => {
