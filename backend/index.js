@@ -11,7 +11,10 @@ const rateLimit = require("express-rate-limit");
 
 // ====================== APP ======================
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "https://emailverification1-1.onrender.com",
+  credentials: true
+}));
 app.use(express.json());
 
 // ====================== RATE LIMIT ======================
