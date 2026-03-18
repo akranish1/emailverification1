@@ -47,12 +47,17 @@ redis.on("error", err => console.log("Redis Error:", err));
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: process.env.SMTP_PORT,
-  secure: true,
+  secure: false,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  connectionTimeout: 10000,
+  tls: {
+    // This helps if the server has strict certificate requirements
+    rejectUnauthorized: false 
+  },
+  connectionTimeout: 20000, // Increase to 20 seconds
+  greetingTimeout: 20000,
 });
 
 const sendOTP = async (email, otp) => {
