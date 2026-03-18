@@ -45,33 +45,28 @@ redis.on("error", err => console.log("Redis Error:", err));
 
 // ====================== MAIL (BREVO) ======================
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: false,
+  service: "gmail", // ✅ easiest & safest
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS, // App Password
   },
-  tls: {
-    // This forces the connection to stay open during the handshake
-    rejectUnauthorized: false,
-    minVersion: 'TLSv1.2'
-  },
-  connectionTimeout: 20000,
 });
 
 const sendOTP = async (email, otp) => {
   try {
     const info = await transporter.sendMail({
-      from: `"Auth App" abcakroy6969@gmail.com`,
+      from: `"Auth App" <${process.env.EMAIL_USER}>`, // ✅ correct format
       to: email,
       subject: "OTP Verification",
-      html: `<h2>Your OTP: ${otp}</h2><p>Valid for 5 minutes</p>`
+      html: `
+        <h2>Your OTP: ${otp}</h2>
+        <p>Valid for 5 minutes</p>
+      `,
     });
 
     console.log("✅ Email sent:", info.messageId);
   } catch (error) {
-    console.error("❌ Email error:", error);
+    console.error("❌ Email error:", error.message);
   }
 };
 
