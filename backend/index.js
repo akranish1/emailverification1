@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const { createClient } = require("redis");
 const rateLimit = require("express-rate-limit");
-const Resend =require("resend");
+const { Resend } = require("resend");
 
 // ====================== APP ======================
 const app = express();
@@ -76,7 +76,7 @@ redis.on("error", err => console.log("Redis Error:", err));
 // };
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-export const sendOTP = async (email, otp) => {
+const sendOTP = async (email, otp) => {
   try {
     const response = await resend.emails.send({
       from: "Auth App <onboarding@resend.dev>", // change after domain verification
