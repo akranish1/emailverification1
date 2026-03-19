@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const { createClient } = require("redis");
 const rateLimit = require("express-rate-limit");
+const Resend =require("resend");
 
 // ====================== APP ======================
 const app = express();
@@ -45,21 +46,40 @@ redis.connect();
 redis.on("error", err => console.log("Redis Error:", err));
 
 // ====================== MAIL (BREVO) ======================
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,          // ✅ use 587 (NOT 465)
-  secure: false,      // TLS upgrade
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  family: 4,          // ✅ FORCE IPv4 (IMPORTANT FIX)
-});
+// const transporter = nodemailer.createTransport({
+//   host: "smtp.gmail.com",
+//   port: 587,          // ✅ use 587 (NOT 465)
+//   secure: false,      // TLS upgrade
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+//   family: 4,          // ✅ FORCE IPv4 (IMPORTANT FIX)
+// });
 
-const sendOTP = async (email, otp) => {
+// const sendOTP = async (email, otp) => {
+//   try {
+//     const info = await transporter.sendMail({
+//       from: `"Auth App" <${process.env.EMAIL_USER}>`, // ✅ correct format
+//       to: email,
+//       subject: "OTP Verification",
+//       html: `
+//         <h2>Your OTP: ${otp}</h2>
+//         <p>Valid for 5 minutes</p>
+//       `,
+//     });
+
+//     console.log("✅ Email sent:", info.messageId);
+//   } catch (error) {
+//     console.error("❌ Email error:", error.message);
+//   }
+// };
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+export const sendOTP = async (email, otp) => {
   try {
-    const info = await transporter.sendMail({
-      from: `"Auth App" <${process.env.EMAIL_USER}>`, // ✅ correct format
+    const response = await resend.emails.send({
+      from: "Auth App <onboarding@resend.dev>", // change after domain verification
       to: email,
       subject: "OTP Verification",
       html: `
@@ -68,7 +88,7 @@ const sendOTP = async (email, otp) => {
       `,
     });
 
-    console.log("✅ Email sent:", info.messageId);
+    console.log("✅ Email sent:", response);
   } catch (error) {
     console.error("❌ Email error:", error.message);
   }
