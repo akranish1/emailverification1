@@ -7,14 +7,13 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const { createClient } = require("redis");
-const rateLimit = require("express-rate-limit");
-const { Resend } = require("resend");
+const rateLimit = require("express-rate-limit"); 
 
 // ====================== APP ======================
 const app = express();
 app.set("trust proxy", 1);
 app.use(cors({
-  origin: "https://emailverification1-1.onrender.com",
+  origin: ["https://emailverification1-1.onrender.com", "http://localhost:5173"],
   credentials: true
 }));
 app.use(express.json());
@@ -46,56 +45,65 @@ redis.connect();
 redis.on("error", err => console.log("Redis Error:", err));
 
 // ====================== MAIL (BREVO) ======================
-// const transporter = nodemailer.createTransport({
-//   host: "smtp.gmail.com",
-//   port: 587,          // ✅ use 587 (NOT 465)
-//   secure: false,      // TLS upgrade
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-//   family: 4,          // ✅ FORCE IPv4 (IMPORTANT FIX)
-// });
+const sendEmail = async (options) => {
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.SENDER_EMAIL;
 
-// const sendOTP = async (email, otp) => {
-//   try {
-//     const info = await transporter.sendMail({
-//       from: `"Auth App" <${process.env.EMAIL_USER}>`, // ✅ correct format
-//       to: email,
-//       subject: "OTP Verification",
-//       html: `
-//         <h2>Your OTP: ${otp}</h2>
-//         <p>Valid for 5 minutes</p>
-//       `,
-//     });
+  if (!apiKey) {
+    console.error("❌ BREVO_API_KEY missing in .env");
+    throw new Error("Email configuration missing");
+  }
 
-//     console.log("✅ Email sent:", info.messageId);
-//   } catch (error) {
-//     console.error("❌ Email error:", error.message);
-//   }
-// };
+  const url = "https://api.brevo.com/v3/smtp/email";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const sendOTP = async (email, otp) => {
+  const payload = {
+    sender: {
+      name: "RateRight",
+      email: senderEmail,
+    },
+    to: [{ email: options.email }],
+    subject: options.subject,
+    htmlContent: options.html,
+  };
+
   try {
-    const response = await resend.emails.send({
-      from: "Auth App <onboarding@resend.dev>", // change after domain verification
-      to: email,
-      subject: "OTP Verification",
-      html: `
-        <h2>Your OTP: ${otp}</h2>
-        <p>Valid for 5 minutes</p>
-      `,
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "api-key": apiKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
-    console.log("✅ Email sent:", response);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.log(
+        "🔴 BREVO ERROR:",
+        JSON.stringify(errorData, null, 2)
+      );
+      throw new Error(errorData.message || "Brevo API Error");
+    }
+
+    console.log("✅ Email sent successfully");
+    return true;
   } catch (error) {
-    console.error("❌ Email error:", error.message);
+    console.error("🔴 Email System Error:", error.message);
+    throw error;
   }
 };
 
 // ====================== HELPERS ======================
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000);
+
+const sendOTP = async (email, otp) => {
+  await sendEmail({
+    email,
+    subject: "Your OTP",
+    html: `<p>Your OTP is <strong>${otp}</strong></p>`,
+  });
+};
 
 const generateToken = (user) =>
   jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
